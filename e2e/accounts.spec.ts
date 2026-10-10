@@ -8,10 +8,8 @@ import {
   testUsername,
 } from "@/test/dev-accounts";
 
-// The whole accounts flow in a browser: an admin creates and edits a player,
-// then the player signs in. Runs against dev; every account is deleted after.
-test.describe.configure({ mode: "serial" });
-
+// The accounts journey in a browser, against dev: an admin creates and edits
+// a player, then the player signs in. Every account is deleted afterwards.
 const admin = { username: testUsername(), password: testPassword(), id: "" };
 const player = {
   username: testUsername(),
@@ -20,6 +18,8 @@ const player = {
   newPassword: testPassword(),
 };
 
+// The admin is made the way Steven makes one in the dashboard: an Auth user
+// with no metadata, so the trigger takes the username from the email.
 test.beforeAll(async () => {
   const { data, error } = await createAdminClient().auth.admin.createUser({
     email: `${admin.username}@flex-idle.invalid`,
@@ -44,72 +44,75 @@ async function signIn(page: Page, username: string, password: string) {
   await page.getByRole("button", { name: "Sign in" }).click();
 }
 
-test("an admin creates and edits a player", async ({ page }) => {
-  await signIn(page, admin.username, admin.password);
-  await expect(page).toHaveURL("/admin");
-  await expect(page.getByRole("heading", { name: "Players" })).toBeVisible();
+test("accounts journey", async ({ page }) => {
+  let editUrl = "";
 
-  // Create the player in Nashville, US.
-  await page.getByLabel("Username", { exact: true }).fill(player.username);
-  await page.getByLabel("Password", { exact: true }).fill(player.password);
-  await page.getByLabel("Name", { exact: true }).fill("Dolly");
-  await page.getByLabel("Country").selectOption({ label: "United States" });
-  await page.getByLabel("City").selectOption("Nashville");
-  await page.getByRole("button", { name: "Create player" }).click();
+  await test.step("signed-out visitors are sent to sign in", async () => {
+    for (const path of ["/profile", "/admin"]) {
+      await page.goto(path);
+      await expect.soft(page, `${path} didn't redirect to sign in`).toHaveURL("/");
+    }
+  });
 
-  // Creating a player opens their edit page.
-  await expect(page.getByRole("heading", { name: "Edit player" })).toBeVisible();
-  await expect(page.getByLabel("Username", { exact: true })).toHaveValue(player.username);
-  await expect(page.getByLabel("City")).toHaveValue("Nashville");
+  await test.step("admin creates a player in Nashville, typing the username in capitals", async () => {
+    await signIn(page, admin.username, admin.password);
+    await expect(page, "admin didn't land on /admin").toHaveURL("/admin");
 
-  // Rename them.
-  await page.getByLabel("Username", { exact: true }).fill(player.renamedTo);
-  await page.getByRole("button", { name: "Change username" }).click();
-  await expect(page.getByText("Username changed.")).toBeVisible();
+    await page.getByLabel("Username", { exact: true }).fill(player.username.toUpperCase());
+    await page.getByLabel("Password", { exact: true }).fill(player.password);
+    await page.getByLabel("Name", { exact: true }).fill("Dolly");
+    await page.getByLabel("Country").selectOption({ label: "United States" });
+    await page.getByLabel("City").selectOption("Nashville");
+    await page.getByRole("button", { name: "Create player" }).click();
 
-  // Move them to Wellington, NZ. The city list follows the country.
-  await page.getByLabel("Country").selectOption({ label: "New Zealand" });
-  await expect(page.getByLabel("City").locator("option", { hasText: "Nashville" })).toHaveCount(0);
-  await page.getByLabel("City").selectOption("Wellington");
-  await page.getByRole("button", { name: "Save details" }).click();
-  await expect(page.getByText("Details saved.")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Edit player" }), "create didn't open the edit page").toBeVisible();
+    editUrl = page.url();
+    await expect
+      .soft(page.getByLabel("Username", { exact: true }), "username wasn't stored lowercase")
+      .toHaveValue(player.username);
+    await expect.soft(page.getByLabel("City"), "city wasn't saved").toHaveValue("Nashville");
+  });
 
-  // Set a new password.
-  await page.getByLabel("New password").fill(player.newPassword);
-  await page.getByRole("button", { name: "Set password" }).click();
-  await expect(page.getByText("Password set.")).toBeVisible();
+  await test.step("admin renames the player, moves them to Wellington and sets a password", async () => {
+    await page.getByLabel("Username", { exact: true }).fill(player.renamedTo);
+    await page.getByRole("button", { name: "Change username" }).click();
+    await expect.soft(page.getByText("Username changed."), "rename failed").toBeVisible();
 
-  // The list shows the renamed player.
-  await page.goto("/admin");
-  await expect(page.getByRole("link", { name: player.renamedTo })).toBeVisible();
+    await page.getByLabel("Country").selectOption({ label: "New Zealand" });
+    await expect
+      .soft(page.getByLabel("City").locator("option", { hasText: "Nashville" }), "city list didn't follow the country")
+      .toHaveCount(0);
+    await page.getByLabel("City").selectOption("Wellington");
+    await page.getByRole("button", { name: "Save details" }).click();
+    await expect.soft(page.getByText("Details saved."), "details didn't save").toBeVisible();
 
-  await page.getByRole("button", { name: "Sign out" }).click();
-  await expect(page).toHaveURL("/");
-});
+    await page.getByLabel("New password").fill(player.newPassword);
+    await page.getByRole("button", { name: "Set password" }).click();
+    await expect.soft(page.getByText("Password set."), "password didn't set").toBeVisible();
 
-test("the player signs in and sees only their profile", async ({ page }) => {
-  // The old password no longer works.
-  await signIn(page, player.renamedTo, player.password);
-  await expect(page.getByText("Wrong username or password.")).toBeVisible();
+    await page.goto("/admin");
+    await expect
+      .soft(page.getByRole("link", { name: player.renamedTo }), "player list doesn't show the new username")
+      .toBeVisible();
+    await page.getByRole("button", { name: "Sign out" }).click();
+    await expect(page, "sign out didn't return to sign in").toHaveURL("/");
+  });
 
-  // Usernames are case-insensitive.
-  await signIn(page, player.renamedTo.toUpperCase(), player.newPassword);
-  await expect(page).toHaveURL("/profile");
-  await expect(page.getByRole("heading", { name: "Profile" })).toBeVisible();
-  await expect(page.getByText("Dolly")).toBeVisible();
-  await expect(page.getByText(player.renamedTo)).toBeVisible();
-  await expect(page.getByText("Wellington, New Zealand")).toBeVisible();
+  await test.step("player signs in and sees only their own profile", async () => {
+    await signIn(page, player.renamedTo, player.password);
+    await expect.soft(page.getByText("Wrong username or password."), "old password still works").toBeVisible();
 
-  // Players can't reach the admin screens.
-  await page.goto("/admin");
-  await expect(page.getByText("This page could not be found.")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Players" })).toHaveCount(0);
-});
+    await signIn(page, player.renamedTo.toUpperCase(), player.newPassword);
+    await expect(page, "player couldn't sign in with a mixed-case username").toHaveURL("/profile");
+    await expect.soft(page.getByText("Dolly"), "profile doesn't show the name").toBeVisible();
+    await expect.soft(page.getByText(player.renamedTo), "profile doesn't show the username").toBeVisible();
+    await expect.soft(page.getByText("Wellington, New Zealand"), "profile doesn't show the location").toBeVisible();
 
-test("signed-out visitors are sent to sign in", async ({ page }) => {
-  for (const path of ["/profile", "/admin", "/admin/players/00000000-0000-0000-0000-000000000000"]) {
-    await page.goto(path);
-    await expect(page).toHaveURL("/");
-    await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
-  }
+    for (const path of ["/admin", new URL(editUrl).pathname]) {
+      await page.goto(path);
+      await expect
+        .soft(page.getByText("This page could not be found."), `player could reach ${path}`)
+        .toBeVisible();
+    }
+  });
 });

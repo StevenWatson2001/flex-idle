@@ -1,17 +1,21 @@
 import { createClient } from "@supabase/supabase-js";
 
-function supabaseUrl(): string {
+export function supabaseUrl(): string {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (!url) throw new Error("NEXT_PUBLIC_SUPABASE_URL is not set");
   return url;
 }
 
+export function publishableKey(): string {
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  if (!key) throw new Error("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is not set");
+  return key;
+}
+
 // A client with the publishable key: it can do only what RLS and grants
 // allow the anon role.
 export function createPublicClient() {
-  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  if (!key) throw new Error("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is not set");
-  return createClient(supabaseUrl(), key, {
+  return createClient(supabaseUrl(), publishableKey(), {
     auth: { persistSession: false },
   });
 }
