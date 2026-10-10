@@ -13,6 +13,7 @@ it from here; closed issues are the history.
 
 ## Next
 - #8 UI overhaul
+- #12 Firewall
 - #7 Resource creation
 
 ## Later
