@@ -3,9 +3,7 @@
 Things that break if a future chat doesn't know them. Keep it short.
 
 - **Live migrations:** Supabase's GitHub integration applies them only on a
-  merge to `main`. Its working directory must be `.`; if it's wrong, the
-  check still passes and applies nothing. After merging a migration,
-  confirm it reached live.
+  merge to `main`. After merging a migration, confirm it reached live.
 - **Grants:** new tables aren't exposed to the Data API automatically.
   Grant each role explicitly, including `service_role` for server writes.
   Error `42501` means a missing grant, not RLS.
