@@ -71,6 +71,8 @@ suit a game better. Steven decides; you implement approved plans.
   `-- --dry-run` to preview). It targets the project in `.env.local`, so
   it never touches live. Needs `pnpm supabase login` once per machine.
   Live gets migrations on merge.
+- `pnpm admin:create`: make an admin account on dev (Steven runs it; add
+  `-- --env-file <file>` to target another project).
 
 <!-- BEGIN:nextjs-agent-rules -->
 

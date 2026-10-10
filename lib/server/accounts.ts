@@ -24,6 +24,7 @@ export type AccountError =
   | "noSuchPlayer"
   | "createFailed"
   | "passwordFailed"
+  | "deleteFailed"
   | "unknownPreference"
   | "saveFailed";
 
@@ -98,6 +99,24 @@ export async function createPlayer(
     return fail(profileError.code === UNIQUE_VIOLATION ? "usernameTaken" : "createFailed");
   }
   return ok({ id: data.user.id });
+}
+
+// Creates an admin: a player, then promoted. Only the first-admin script
+// (scripts/create-admin.mjs) calls this; the app never makes admins.
+export async function createAdmin(
+  input: PlayerDetails & { username: string; password: string },
+): Promise<Result<{ id: string }>> {
+  const made = await createPlayer(input);
+  if (!made.ok) return made;
+
+  const admin = createAdminClient();
+  const { error } = await admin.from("profiles").update({ role: "admin" }).eq("id", made.value.id);
+  if (error) {
+    // Don't leave a player behind who was meant to be an admin.
+    await admin.auth.admin.deleteUser(made.value.id);
+    return fail("createFailed");
+  }
+  return made;
 }
 
 export async function listPlayers(): Promise<Player[]> {
@@ -181,6 +200,15 @@ export async function setPlayerPassword(id: string, password: string): Promise<R
     password,
   });
   return authError ? fail("passwordFailed") : ok();
+}
+
+// Deletes a player's Auth user; their profile, and everything else that
+// cascades from it, goes too. Admins can't be deleted here.
+export async function deletePlayer(id: string): Promise<Result> {
+  if (!(await getPlayer(id))) return fail("noSuchPlayer");
+
+  const { error } = await createAdminClient().auth.admin.deleteUser(id);
+  return error ? fail("deleteFailed") : ok();
 }
 
 // The placeholder email Auth knows this account by, or null if there's no

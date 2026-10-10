@@ -25,7 +25,16 @@ Tailwind + shadcn/ui · Vitest · Playwright · GitHub Actions · Vercel · pnpm
   access decisions.
 - `e2e/`: Playwright flows. `test/`: helpers for tests that use dev.
 - `lib/server/ai.ts`: the only code that calls an LLM.
-- `app/`: pages and server actions.
+- `app/`: pages and server actions. `app/(signed-in)/` holds every page
+  behind sign-in, under the shared header and nav.
+- `app/globals.css`: the theme. Every colour is a token, set for Light on
+  `:root` and for Dark on `.dark`, plus the CSS-only background texture.
+- `components/ui/`: shadcn components, restyled through the theme tokens.
+- `messages/`: all UI text, one file per language. `i18n/request.ts` picks
+  each request's language.
+- `lib/preferences.ts`: the languages and themes a player can choose.
+- `scripts/create-admin.mjs`: makes admin accounts (`pnpm admin:create`).
+  `scripts/ts-paths.mjs` lets scripts run the app's TypeScript.
 
 ## Boundaries
 - **Browser:** reads the player's own data through supabase-js (RLS
@@ -56,6 +65,10 @@ Same code everywhere; only environment variables differ.
 ## Cross-cutting
 - **Auth:** username + password through Supabase Auth, with an internal
   placeholder email per account and email confirmation off.
+- **UI:** a modern RPG theme with gold outlines on textured brown, in Light
+  and Dark, desktop only. English and Khmer through next-intl, without
+  locale URLs. Each player's language and theme are saved on their profile
+  and rendered by the server.
 - **AI:** Vercel AI SDK behind `lib/server/ai.ts`. Model set in config;
   per-player usage caps.
 - **Testing:** per slice, one Playwright flow and one security test

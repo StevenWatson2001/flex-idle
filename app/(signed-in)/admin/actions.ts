@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import {
   createPlayer,
+  deletePlayer,
   renamePlayer,
   setPlayerPassword,
   updatePlayerDetails,
@@ -75,4 +76,11 @@ export async function setPlayerPasswordAction(
 ): Promise<FormState> {
   if (!(await isAdmin())) return errorState("notAllowed");
   return toFormState(await setPlayerPassword(id, formText(formData, "password")), "passwordSet");
+}
+
+export async function deletePlayerAction(id: string): Promise<FormState> {
+  if (!(await isAdmin())) return errorState("notAllowed");
+  const result = await deletePlayer(id);
+  if (!result.ok) return errorState(result.error);
+  redirect("/admin");
 }

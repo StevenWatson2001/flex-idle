@@ -3,16 +3,18 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { localisedCountries } from "@/lib/accounts/locations";
 import { getPlayer } from "@/lib/server/accounts";
 import { requireAdmin } from "@/lib/server/session";
 import { ActionForm, Field, LocationSelect } from "../../../../forms";
 import {
+  deletePlayerAction,
   renamePlayerAction,
   setPlayerPasswordAction,
   updatePlayerDetailsAction,
 } from "../../actions";
+import { DeletePlayer } from "./delete-player";
 
 export default async function EditPlayerPage({
   params,
@@ -111,6 +113,18 @@ export default async function EditPlayerPage({
               autoComplete="new-password"
             />
           </ActionForm>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <h2>{t("admin.deleteSection")}</h2>
+          </CardTitle>
+          <CardDescription>{t("admin.deleteIntro")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <DeletePlayer username={player.username} action={deletePlayerAction.bind(null, id)} />
         </CardContent>
       </Card>
     </main>

@@ -26,12 +26,17 @@
   },
   "game": {
     "region": "Game",
-    "placeholder": "Your money and the click area will appear here.",
-    "panel": "Units and upgrades",
+    "placeholder": "The click area will appear here.",
+    "currencies": "Currencies",
+    "gold": "Gold",
+    "favour": "Favour",
+    "panel": "Units, upgrades and blessings",
     "units": "Units",
     "upgrades": "Upgrades",
+    "blessings": "Blessings",
     "unitsEmpty": "Units you can buy will appear here.",
-    "upgradesEmpty": "Upgrades you can buy will appear here."
+    "upgradesEmpty": "Upgrades you can buy will appear here.",
+    "blessingsEmpty": "Blessings the gods grant when you ascend will appear here."
   },
   "profile": {
     "title": "Profile",
@@ -75,7 +80,14 @@
     "setPassword": "Set password",
     "usernameChanged": "Username changed.",
     "detailsSaved": "Details saved.",
-    "passwordSet": "Password set."
+    "passwordSet": "Password set.",
+    "deleteSection": "Delete player",
+    "deleteIntro": "Removes the account and all of its progress for good.",
+    "deleteButton": "Delete player",
+    "deleteConfirmTitle": "Delete <name>{username}</name>?",
+    "deleteConfirmBody": "This removes their account and all their progress. It can't be undone.",
+    "cancel": "Cancel",
+    "confirmDelete": "Delete"
   },
   "errors": {
     "usernameFormat": "Username must be 3–20 letters, digits or underscores.",
@@ -92,7 +104,8 @@
     "unknownPreference": "Choose a language and theme from the lists.",
     "saveFailed": "Couldn't save. Please try again.",
     "notAllowed": "Only admins can do that.",
-    "signedOut": "You've been signed out. Sign in again."
+    "signedOut": "You've been signed out. Sign in again.",
+    "deleteFailed": "Couldn't delete the player."
   },
   "notFound": {
     "title": "Lost in the wilds",
