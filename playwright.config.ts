@@ -17,10 +17,24 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
-  webServer: {
-    command: "pnpm build && pnpm start",
-    url: "http://localhost:3000/api/health",
-    reuseExistingServer: !process.env.CI,
-    timeout: 300_000,
-  },
+  // Playwright starts these in order, so the second reuses the first's build.
+  webServer: [
+    {
+      command: "pnpm build && pnpm start",
+      url: "http://localhost:3000/api/health",
+      reuseExistingServer: !process.env.CI,
+      timeout: 300_000,
+    },
+    // The same build acting as live, with the firewall on. It waits on the
+    // port because the firewall blocks the health check.
+    {
+      command: "pnpm start --port 3001",
+      port: 3001,
+      reuseExistingServer: !process.env.CI,
+      env: {
+        VERCEL_ENV: "production",
+        ALLOWED_IPS: JSON.stringify([{ ip: "203.0.113.10", label: "e2e" }]),
+      },
+    },
+  ],
 });

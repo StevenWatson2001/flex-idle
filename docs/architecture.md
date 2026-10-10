@@ -21,8 +21,9 @@ Tailwind + shadcn/ui · Vitest · Playwright · GitHub Actions · Vercel · pnpm
 - `lib/server/session.ts`: the signed-in account, and the
   `requireAccount()` / `requireAdmin()` checks every page and action uses.
 - `lib/server/supabase-admin.ts`: the secret-key client. Server only.
-- `proxy.ts`: refreshes the session cookie on each request. It makes no
-  access decisions.
+- `proxy.ts`: on live, the IP firewall (`lib/server/firewall.ts`,
+  `docs/firewall.md`); then refreshes the session cookie. It makes no
+  account decisions.
 - `e2e/`: Playwright flows. `test/`: helpers for tests that use dev.
 - `lib/server/ai.ts`: the only code that calls an LLM.
 - `app/`: pages and server actions. `app/(signed-in)/` holds every page
@@ -69,6 +70,9 @@ Same code everywhere; only environment variables differ.
   and Dark, desktop only. English and Khmer through next-intl, without
   locale URLs. Each player's language and theme are saved on their profile
   and rendered by the server.
+- **Firewall:** live answers only IPs in the `ALLOWED_IPS` env var;
+  everyone else gets a bare 404. Supabase isn't behind it. See
+  `docs/firewall.md`.
 - **AI:** Vercel AI SDK behind `lib/server/ai.ts`. Model set in config;
   per-player usage caps.
 - **Testing:** per slice, one Playwright flow and one security test

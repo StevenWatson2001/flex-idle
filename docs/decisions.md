@@ -49,3 +49,12 @@ Things that break if a future chat doesn't know them. Keep it short.
   breaks CI.
 - **Vercel previews** require a Vercel login, so `curl` gets a 302.
   Steven checks previews in his browser.
+- **Firewall:** it fails closed, so production needs `ALLOWED_IPS` set
+  before any deploy, or everyone (Steven included) gets a 404. It trusts
+  `x-real-ip`, which only Vercel sets reliably; don't reuse it on another
+  host. See `docs/firewall.md`.
+- **Supabase is open to the internet** by choice. Its IP restrictions only
+  cover direct Postgres connections, not the HTTPS API the app uses. No
+  browser code uses the publishable key today (it isn't in the bundle), but
+  it's designed to be public: RLS, grants and public sign-up being off are
+  what protect the data.
