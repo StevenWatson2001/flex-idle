@@ -1,0 +1,3 @@
+# Store text files with LF in the repo and in checkouts, so Windows, CI and
+# Vercel all see the same bytes.
+* text=auto eol=lf

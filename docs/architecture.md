@@ -14,6 +14,8 @@ Tailwind + shadcn/ui · Vitest · Playwright · GitHub Actions · Vercel · pnpm
   every schema change. Never edited once applied.
 - `docs/data-model.md`: the planned tables, what each holds, and who can
   read or write it.
+- `docs/vision.md`: what the game should be in the end.
+- `docs/decisions.md`: decisions and lessons, newest first.
 - `lib/server/db-write.ts`: the only code that writes game data.
 - `lib/server/ai.ts`: the only code that calls an LLM.
 - `app/`: pages and server actions.
