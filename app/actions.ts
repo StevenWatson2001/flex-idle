@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { signInWithUsername } from "@/lib/server/accounts";
 import { createSessionClient } from "@/lib/server/session";
-import { formText, type FormState } from "./form-state";
+import { errorState, formText, type FormState } from "./form-state";
 
 export async function signIn(_state: FormState, formData: FormData): Promise<FormState> {
   const result = await signInWithUsername(
@@ -11,7 +11,7 @@ export async function signIn(_state: FormState, formData: FormData): Promise<For
     formText(formData, "username"),
     formText(formData, "password"),
   );
-  if (!result.ok) return { error: result.error };
+  if (!result.ok) return errorState(result.error);
   // The home page sends each role where it belongs.
   redirect("/");
 }

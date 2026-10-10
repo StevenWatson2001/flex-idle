@@ -1,2 +1,5 @@
 allowBuilds:
   unrs-resolver: false
+  # Pulled in by next-intl for its message extractor, which we don't use.
+  "@parcel/watcher": false
+  "@swc/core": false
