@@ -22,8 +22,8 @@ suit a game better. Steven decides; you implement approved plans.
    - Small fixes go in this PR; bigger ones become issues.
    - Add to `docs/decisions.md` only what would break future work if
      unknown.
-   - Confirm the roadmap with Steven. Next needs at least two slices with
-     issues; draft any missing ones for his approval.
+   - Confirm the roadmap with Steven. Next holds two unfinished slices
+     with issues, no more; draft a missing one for his approval.
 
 ## Always
 - Work against dev only.

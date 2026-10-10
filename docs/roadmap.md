@@ -1,7 +1,7 @@
 # Roadmap
 
 - **Now:** the one slice in progress.
-- **Next:** defined slices, each with an issue, in priority order.
+- **Next:** the two slices after Now, each with an issue, in priority order.
 - **Later:** direction only, no issue yet.
 
 When a Later item is defined, create its issue (Goal · Acceptance criteria ·
@@ -9,11 +9,11 @@ Notes) and move it to Next with its number. When a slice is merged, remove
 it from here; closed issues are the history.
 
 ## Now
-- #3 Accounts
+- Nothing in progress. #8 is next.
 
 ## Next
+- #8 UI overhaul
 - #7 Resource creation
-- #8 UI layout
 
 ## Later
 - Upgrades and units
