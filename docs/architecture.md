@@ -6,13 +6,14 @@ and every change to progress is decided by server code. Game content
 
 ## Stack
 TypeScript · Next.js (App Router) · Supabase (Postgres, Auth, RLS) ·
-supabase-js for all data access · Drizzle Kit for schema and migrations only ·
+supabase-js for all data access · Supabase CLI for migrations ·
 Tailwind + shadcn/ui · Vitest · Playwright · GitHub Actions · Vercel · pnpm
 
 ## Codemap
-- `db/schema.ts`: source of truth for every table, column and RLS policy.
-- `db/migrations/`: SQL generated from the schema, one per slice. Never
-  edited by hand.
+- `supabase/migrations/`: SQL migrations, one per slice; the record of
+  every schema change. Never edited once applied.
+- `docs/data-model.md`: the planned tables, what each holds, and who can
+  read or write it.
 - `lib/server/db-write.ts`: the only code that writes game data.
 - `lib/server/ai.ts`: the only code that calls an LLM.
 - `app/`: pages and server actions.
@@ -29,8 +30,8 @@ Tailwind + shadcn/ui · Vitest · Playwright · GitHub Actions · Vercel · pnpm
 - The browser never writes game data and stores nothing but the login
   session.
 - Every table has RLS on, explicit policies and explicit grants.
-- The schema changes only through `db/schema.ts` plus a generated migration.
-  Drops and renames need Steven's approval.
+- The schema changes only through new migration files. Drops and renames need
+  Steven's approval.
 - History is append-only.
 - Generated upgrades are validated and saved to `content` before any player
   sees them.
@@ -51,5 +52,5 @@ Same code everywhere; only environment variables differ.
 - **Testing:** unit tests for game logic; database tests against dev
   (unique test data, cleaned up afterwards); a few Playwright flows.
 - **Pipeline:** each PR runs lint, typecheck and tests and gets a preview
-  on dev. Merging to `main` makes CI apply migrations to live once Steven
-  approves `production`; Vercel then deploys.
+  on dev. Merging to `main` makes Supabase's GitHub integration apply new
+  migrations to live; Vercel deploys production.
