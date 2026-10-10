@@ -2,6 +2,14 @@
 
 Things that break if a future chat doesn't know them. Keep it short.
 
+- **Game numbers** are doubles (`double precision` in Postgres, `number`
+  in TypeScript), good to about 1.8e308. Show them with `formatAmount`
+  from `lib/game/format.ts`, never raw.
+- **Clicks** reach the database only through `save_clicks`, which caps
+  them; the cap's numbers live in `lib/game/clicks.ts` and are passed in.
+  Game tables have no write grants at all: new game writes get a
+  `security definer` function that only `service_role` can execute,
+  called from `lib/server/db-write.ts`.
 - **Usernames:** they live only in `profiles.username`, lowercase. The
   Auth email is a placeholder (`new_<random>@accounts.flex-idle.invalid`)
   that never changes, so sign-in looks the username up on the server.

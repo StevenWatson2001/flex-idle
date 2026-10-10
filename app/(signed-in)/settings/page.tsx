@@ -5,7 +5,8 @@ import { LANGUAGE_NAMES, LANGUAGES, THEMES } from "@/lib/preferences";
 import { requireAccount } from "@/lib/server/session";
 import { signOut } from "../../actions";
 import { ActionForm, SelectField } from "../../forms";
-import { savePreferences } from "./actions";
+import { resetProgress, savePreferences } from "./actions";
+import { ResetProgress } from "./reset-progress";
 
 export default async function SettingsPage() {
   const account = await requireAccount();
@@ -43,6 +44,20 @@ export default async function SettingsPage() {
           </ActionForm>
         </CardContent>
       </Card>
+
+      {account.role === "player" && (
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              <h2>{t("progress")}</h2>
+            </CardTitle>
+            <CardDescription>{t("resetIntro")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResetProgress action={resetProgress} />
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
