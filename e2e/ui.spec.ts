@@ -2,9 +2,10 @@ import { expect, test, type Page } from "@playwright/test";
 import { createPlayer } from "@/lib/server/accounts";
 import { deleteAccounts, makeAdmin, testPassword, testUsername } from "@/test/dev-accounts";
 
-// The game layout and Settings in a browser, against dev: a player finds
-// their way around, switches to Khmer and the Light theme, and finds both
-// kept after signing in again. Admins stay in their own area.
+// The game layout, Settings and admin tools in a browser, against dev: a
+// player finds their way around, switches to Khmer and the Light theme, and
+// finds both kept after signing in again. Admins stay in their own area,
+// where they can delete a player.
 const player = { username: testUsername(), password: testPassword(), id: "" };
 const admin = { username: testUsername(), password: testPassword(), id: "" };
 
@@ -42,6 +43,9 @@ test("game layout and settings journey", async ({ page }) => {
       .soft(page.getByRole("link", { name: "Play" }), "Play isn't marked as the current section")
       .toHaveAttribute("aria-current", "page");
     await expect.soft(page.getByRole("region", { name: "Game" }), "no game area").toBeVisible();
+    await expect
+      .soft(page.getByRole("region", { name: "Currencies" }), "currency bar doesn't show Gold and Favour")
+      .toHaveText(/Gold.*Favour/);
 
     await expect
       .soft(page.getByText("Units you can buy will appear here."), "Units tab has no empty state")
@@ -49,6 +53,13 @@ test("game layout and settings journey", async ({ page }) => {
     await page.getByRole("tab", { name: "Upgrades" }).click();
     await expect
       .soft(page.getByText("Upgrades you can buy will appear here."), "Upgrades tab has no empty state")
+      .toBeVisible();
+    await page.getByRole("tab", { name: "Blessings" }).click();
+    await expect
+      .soft(
+        page.getByText("Blessings the gods grant when you ascend will appear here."),
+        "Blessings tab has no empty state",
+      )
       .toBeVisible();
   });
 
@@ -86,5 +97,17 @@ test("game layout and settings journey", async ({ page }) => {
 
     await page.goto("/play");
     await expect.soft(page, "admin could open the game").toHaveURL("/admin");
+  });
+
+  await test.step("admin deletes the player", async () => {
+    await page.goto("/admin");
+    await page.getByRole("link", { name: player.username }).click();
+    await page.getByRole("button", { name: "Delete player" }).click();
+    await page.getByRole("alertdialog").getByRole("button", { name: "Delete", exact: true }).click();
+
+    await expect(page, "delete didn't return to the player list").toHaveURL("/admin");
+    await expect
+      .soft(page.getByRole("link", { name: player.username }), "deleted player is still listed")
+      .toHaveCount(0);
   });
 });
