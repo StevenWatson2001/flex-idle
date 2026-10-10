@@ -94,6 +94,7 @@ test("accounts journey", async ({ page }) => {
     await expect
       .soft(page.getByRole("link", { name: player.renamedTo }), "player list doesn't show the new username")
       .toBeVisible();
+    await page.getByRole("link", { name: "Settings" }).click();
     await page.getByRole("button", { name: "Sign out" }).click();
     await expect(page, "sign out didn't return to sign in").toHaveURL("/");
   });
@@ -103,7 +104,8 @@ test("accounts journey", async ({ page }) => {
     await expect.soft(page.getByText("Wrong username or password."), "old password still works").toBeVisible();
 
     await signIn(page, player.renamedTo.toUpperCase(), player.newPassword);
-    await expect(page, "player couldn't sign in with a mixed-case username").toHaveURL("/profile");
+    await expect(page, "player couldn't sign in with a mixed-case username").toHaveURL("/play");
+    await page.goto("/profile");
     await expect.soft(page.getByText("Dolly"), "profile doesn't show the name").toBeVisible();
     await expect.soft(page.getByText(player.renamedTo), "profile doesn't show the username").toBeVisible();
     await expect.soft(page.getByText("Wellington, New Zealand"), "profile doesn't show the location").toBeVisible();

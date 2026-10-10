@@ -1,20 +1,34 @@
 import { randomBytes } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
+  type FieldError,
   normaliseUsername,
   validateLocation,
   validateName,
   validatePassword,
   validateUsername,
 } from "@/lib/accounts/rules";
+import { type Language, type Theme, isLanguage, isTheme } from "@/lib/preferences";
 import { createAdminClient } from "./supabase-admin";
 
 // Account operations. Admin pages call these after checking the caller is
 // an admin; every input is validated here, because it came from a browser.
 // The username lives only in profiles; the Auth email is a placeholder no
-// one sees, so a rename never touches Auth.
+// one sees, so a rename never touches Auth. Errors are keys, translated
+// under "errors" in messages/ by the action that shows them.
 
-export type Result<T = void> = { ok: true; value: T } | { ok: false; error: string };
+export type AccountError =
+  | FieldError
+  | "wrongSignIn"
+  | "usernameTaken"
+  | "noSuchPlayer"
+  | "createFailed"
+  | "passwordFailed"
+  | "deleteFailed"
+  | "unknownPreference"
+  | "saveFailed";
+
+export type Result<T = void> = { ok: true; value: T } | { ok: false; error: AccountError };
 
 export type PlayerDetails = { name: string; country: string; city: string };
 
@@ -24,9 +38,6 @@ export type Player = PlayerDetails & {
   createdAt: string;
 };
 
-const WRONG_SIGN_IN = "Wrong username or password.";
-const TAKEN = "That username is taken.";
-const NO_SUCH_PLAYER = "No such player.";
 const UNIQUE_VIOLATION = "23505";
 
 function ok(): Result;
@@ -35,11 +46,11 @@ function ok<T>(value?: T): Result<T | undefined> {
   return { ok: true, value };
 }
 
-function fail(error: string): { ok: false; error: string } {
+function fail(error: AccountError): { ok: false; error: AccountError } {
   return { ok: false, error };
 }
 
-function validateDetails(details: PlayerDetails): string | null {
+function validateDetails(details: PlayerDetails): FieldError | null {
   return validateName(details.name) ?? validateLocation(details.country, details.city);
 }
 
@@ -59,7 +70,7 @@ export async function createPlayer(
   const error =
     validateUsername(username) ?? validatePassword(input.password) ?? validateDetails(input);
   if (error) return fail(error);
-  if (await usernameTaken(username)) return fail(TAKEN);
+  if (await usernameTaken(username)) return fail("usernameTaken");
 
   // Auth writes app_metadata after inserting the user, so the profile
   // trigger only sees the email and takes the username from it. Give it a
@@ -71,7 +82,7 @@ export async function createPlayer(
     password: input.password,
     email_confirm: true,
   });
-  if (authError) return fail("Couldn't create the player.");
+  if (authError) return fail("createFailed");
 
   const { error: profileError } = await admin
     .from("profiles")
@@ -85,9 +96,27 @@ export async function createPlayer(
   if (profileError) {
     // Don't leave a half-made account behind.
     await admin.auth.admin.deleteUser(data.user.id);
-    return fail(profileError.code === UNIQUE_VIOLATION ? TAKEN : "Couldn't create the player.");
+    return fail(profileError.code === UNIQUE_VIOLATION ? "usernameTaken" : "createFailed");
   }
   return ok({ id: data.user.id });
+}
+
+// Creates an admin: a player, then promoted. Only the first-admin script
+// (scripts/create-admin.mjs) calls this; the app never makes admins.
+export async function createAdmin(
+  input: PlayerDetails & { username: string; password: string },
+): Promise<Result<{ id: string }>> {
+  const made = await createPlayer(input);
+  if (!made.ok) return made;
+
+  const admin = createAdminClient();
+  const { error } = await admin.from("profiles").update({ role: "admin" }).eq("id", made.value.id);
+  if (error) {
+    // Don't leave a player behind who was meant to be an admin.
+    await admin.auth.admin.deleteUser(made.value.id);
+    return fail("createFailed");
+  }
+  return made;
 }
 
 export async function listPlayers(): Promise<Player[]> {
@@ -140,8 +169,8 @@ async function updatePlayerRow(
     .eq("id", id)
     .eq("role", "player")
     .select("id");
-  if (error?.code === UNIQUE_VIOLATION) return fail(TAKEN);
-  if (error || data.length === 0) return fail(NO_SUCH_PLAYER);
+  if (error?.code === UNIQUE_VIOLATION) return fail("usernameTaken");
+  if (error || data.length === 0) return fail("noSuchPlayer");
   return ok();
 }
 
@@ -165,12 +194,21 @@ export async function updatePlayerDetails(id: string, details: PlayerDetails): P
 export async function setPlayerPassword(id: string, password: string): Promise<Result> {
   const error = validatePassword(password);
   if (error) return fail(error);
-  if (!(await getPlayer(id))) return fail(NO_SUCH_PLAYER);
+  if (!(await getPlayer(id))) return fail("noSuchPlayer");
 
   const { error: authError } = await createAdminClient().auth.admin.updateUserById(id, {
     password,
   });
-  return authError ? fail("Couldn't set the password.") : ok();
+  return authError ? fail("passwordFailed") : ok();
+}
+
+// Deletes a player's Auth user; their profile, and everything else that
+// cascades from it, goes too. Admins can't be deleted here.
+export async function deletePlayer(id: string): Promise<Result> {
+  if (!(await getPlayer(id))) return fail("noSuchPlayer");
+
+  const { error } = await createAdminClient().auth.admin.deleteUser(id);
+  return error ? fail("deleteFailed") : ok();
 }
 
 // The placeholder email Auth knows this account by, or null if there's no
@@ -200,8 +238,26 @@ export async function signInWithUsername(
   password: string,
 ): Promise<Result> {
   const email = await signInEmailFor(username);
-  if (!email) return fail(WRONG_SIGN_IN);
+  if (!email) return fail("wrongSignIn");
 
   const { error } = await client.auth.signInWithPassword({ email, password });
-  return error ? fail(WRONG_SIGN_IN) : ok();
+  return error ? fail("wrongSignIn") : ok();
+}
+
+// Saves an account's own language and theme, and returns them once
+// checked. Any role may, so there's no role filter; the caller passes the
+// signed-in account's id.
+export async function setPreferences(
+  id: string,
+  preferences: { language: string; theme: string },
+): Promise<Result<{ language: Language; theme: Theme }>> {
+  const { language, theme } = preferences;
+  if (!isLanguage(language) || !isTheme(theme)) return fail("unknownPreference");
+
+  const { data, error } = await createAdminClient()
+    .from("profiles")
+    .update({ language, theme })
+    .eq("id", id)
+    .select("id");
+  return error || data.length === 0 ? fail("saveFailed") : ok({ language, theme });
 }

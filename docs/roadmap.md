@@ -9,16 +9,14 @@ Notes) and move it to Next with its number. When a slice is merged, remove
 it from here; closed issues are the history.
 
 ## Now
-- Nothing in progress. #8 is next.
+- #12 Firewall
 
 ## Next
-- #8 UI overhaul
-- #12 Firewall
 - #7 Resource creation
 
 ## Later
 - Upgrades and units
-- Reskin: imagery and visuals
+- Reskin: imagery and AI art (the RPG theme itself came with #8)
 - Ascension
 - AI-generated upgrades
 - Milestones

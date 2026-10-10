@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
+import type { Language, Theme } from "@/lib/preferences";
 import { publishableKey, supabaseUrl } from "@/lib/supabase";
 
 // The signed-in account, read from the session cookie. Pages and server
@@ -14,6 +15,8 @@ export type Account = {
   country: string | null;
   city: string | null;
   role: "player" | "admin";
+  language: Language;
+  theme: Theme;
 };
 
 // A client acting as the signed-in user, with the publishable key, so RLS
@@ -41,19 +44,34 @@ export async function createSessionClient() {
 
 // The account for this request, or null if no one is signed in. The role
 // comes from the database, not the token, so a role change applies at once.
+// A failed read throws rather than looking like no one is signed in.
 export const getCurrentAccount = cache(async (): Promise<Account | null> => {
   const supabase = await createSessionClient();
   const { data: claims } = await supabase.auth.getClaims();
   const userId = claims?.claims.sub;
   if (!userId) return null;
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("profiles")
-    .select("id, username, name, country, city, role")
+    .select("id, username, name, country, city, role, language, theme")
     .eq("id", userId)
     .maybeSingle();
+  if (error) throw new Error(`Couldn't read the signed-in profile: ${error.message}`);
   return data;
 });
+
+// The signed-in user's id, read from the session without the cached
+// profile. Actions that change the profile use this, so the page they
+// re-render reads the profile afresh.
+export async function currentUserId(): Promise<string | null> {
+  const { data } = await (await createSessionClient()).auth.getClaims();
+  return data?.claims.sub ?? null;
+}
+
+// Where each role starts: players in the game, admins in the admin area.
+export function homePath(account: Account): string {
+  return account.role === "admin" ? "/admin" : "/play";
+}
 
 export async function requireAccount(): Promise<Account> {
   const account = await getCurrentAccount();

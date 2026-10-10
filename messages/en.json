@@ -1,0 +1,115 @@
+{
+  "app": {
+    "name": "Flex Idle"
+  },
+  "nav": {
+    "label": "Main",
+    "play": "Play",
+    "players": "Players",
+    "profile": "Profile",
+    "settings": "Settings"
+  },
+  "fields": {
+    "username": "Username",
+    "password": "Password",
+    "newPassword": "New password",
+    "name": "Name",
+    "country": "Country",
+    "city": "City",
+    "chooseCountry": "Choose a country",
+    "chooseCity": "Choose a city"
+  },
+  "signIn": {
+    "title": "Sign in",
+    "intro": "Enter your username and password to continue your adventure.",
+    "submit": "Sign in"
+  },
+  "game": {
+    "region": "Game",
+    "placeholder": "The click area will appear here.",
+    "currencies": "Currencies",
+    "gold": "Gold",
+    "favour": "Favour",
+    "panel": "Units, upgrades and blessings",
+    "units": "Units",
+    "upgrades": "Upgrades",
+    "blessings": "Blessings",
+    "unitsEmpty": "Units you can buy will appear here.",
+    "upgradesEmpty": "Upgrades you can buy will appear here.",
+    "blessingsEmpty": "Blessings the gods grant when you ascend will appear here."
+  },
+  "profile": {
+    "title": "Profile",
+    "location": "Location",
+    "role": "Role",
+    "none": "—",
+    "roles": {
+      "player": "Player",
+      "admin": "Admin"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "preferences": "Preferences",
+    "preferencesIntro": "Choose how the game looks and which language it speaks.",
+    "language": "Language",
+    "theme": "Theme",
+    "themes": {
+      "dark": "Dark",
+      "light": "Light"
+    },
+    "save": "Save preferences",
+    "saved": "Preferences saved.",
+    "account": "Account",
+    "signOutIntro": "Sign out of Flex Idle on this browser.",
+    "signOut": "Sign out"
+  },
+  "admin": {
+    "title": "Players",
+    "noPlayers": "No players yet.",
+    "created": "Created",
+    "newPlayer": "New player",
+    "create": "Create player",
+    "allPlayers": "All players",
+    "editPlayer": "Edit player",
+    "usernameSection": "Username",
+    "detailsSection": "Details",
+    "passwordSection": "Password",
+    "changeUsername": "Change username",
+    "saveDetails": "Save details",
+    "setPassword": "Set password",
+    "usernameChanged": "Username changed.",
+    "detailsSaved": "Details saved.",
+    "passwordSet": "Password set.",
+    "deleteSection": "Delete player",
+    "deleteIntro": "Removes the account and all of its progress for good.",
+    "deleteButton": "Delete player",
+    "deleteConfirmTitle": "Delete <name>{username}</name>?",
+    "deleteConfirmBody": "This removes their account and all their progress. It can't be undone.",
+    "cancel": "Cancel",
+    "confirmDelete": "Delete"
+  },
+  "errors": {
+    "usernameFormat": "Username must be 3–20 letters, digits or underscores.",
+    "passwordShort": "Password must be at least 8 characters.",
+    "passwordLong": "Password is too long.",
+    "nameLength": "Name must be 1–50 characters.",
+    "chooseCountry": "Choose a country.",
+    "chooseCity": "Choose a city.",
+    "wrongSignIn": "Wrong username or password.",
+    "usernameTaken": "That username is taken.",
+    "noSuchPlayer": "No such player.",
+    "createFailed": "Couldn't create the player.",
+    "passwordFailed": "Couldn't set the password.",
+    "unknownPreference": "Choose a language and theme from the lists.",
+    "saveFailed": "Couldn't save. Please try again.",
+    "notAllowed": "Only admins can do that.",
+    "signedOut": "You've been signed out. Sign in again.",
+    "deleteFailed": "Couldn't delete the player."
+  },
+  "notFound": {
+    "title": "Lost in the wilds",
+    "message": "This page could not be found.",
+    "home": "Back to safety"
+  }
+}

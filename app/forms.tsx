@@ -7,7 +7,12 @@ import {
   type InputHTMLAttributes,
   type ReactNode,
 } from "react";
-import { COUNTRIES, findCountry } from "@/lib/accounts/locations";
+import { useTranslations } from "next-intl";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import type { FormState } from "./form-state";
 
 // A labelled input.
@@ -17,9 +22,38 @@ export function Field({
   ...input
 }: { id: string; label: string } & InputHTMLAttributes<HTMLInputElement>) {
   return (
-    <p>
-      <label htmlFor={id}>{label}</label> <input id={id} {...input} />
-    </p>
+    <div className="grid gap-2">
+      <Label htmlFor={id}>{label}</Label>
+      <Input id={id} {...input} />
+    </div>
+  );
+}
+
+// A labelled dropdown of fixed options.
+export function SelectField({
+  id,
+  label,
+  name,
+  defaultValue,
+  options,
+}: {
+  id: string;
+  label: string;
+  name: string;
+  defaultValue: string;
+  options: { value: string; label: string }[];
+}) {
+  return (
+    <div className="grid gap-2">
+      <Label htmlFor={id}>{label}</Label>
+      <NativeSelect id={id} name={name} defaultValue={defaultValue} className="w-full">
+        {options.map((option) => (
+          <NativeSelectOption key={option.value} value={option.value}>
+            {option.label}
+          </NativeSelectOption>
+        ))}
+      </NativeSelect>
+    </div>
   );
 }
 
@@ -39,6 +73,7 @@ export function ActionForm({
 
   return (
     <form
+      className="grid gap-4"
       onSubmit={(event) => {
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
@@ -46,50 +81,65 @@ export function ActionForm({
       }}
     >
       {children}
-      <button type="submit" disabled={pending}>
-        {submitLabel}
-      </button>
-      {state?.error && <p role="alert">{state.error}</p>}
-      {state?.message && <p role="status">{state.message}</p>}
+      <div>
+        <Button type="submit" disabled={pending}>
+          {submitLabel}
+        </Button>
+      </div>
+      {state?.error && (
+        <Alert variant="destructive">
+          <AlertDescription>{state.error}</AlertDescription>
+        </Alert>
+      )}
+      {state?.message && (
+        <Alert variant="success" role="status">
+          <AlertDescription>{state.message}</AlertDescription>
+        </Alert>
+      )}
     </form>
   );
 }
 
 // Country and city dropdowns. The cities offered follow the chosen country.
+// Country names come from the server in the player's language.
 export function LocationSelect({
   idPrefix,
+  countries,
   defaultCountry = "",
   defaultCity = "",
 }: {
   idPrefix: string;
+  countries: { code: string; name: string; cities: readonly string[] }[];
   defaultCountry?: string;
   defaultCity?: string;
 }) {
+  const t = useTranslations("fields");
   const [country, setCountry] = useState(defaultCountry);
-  const cities = findCountry(country)?.cities ?? [];
+  const cities = countries.find((c) => c.code === country)?.cities ?? [];
 
   return (
-    <>
-      <p>
-        <label htmlFor={`${idPrefix}-country`}>Country</label>{" "}
-        <select
+    <div className="grid grid-cols-2 gap-4">
+      <div className="grid gap-2">
+        <Label htmlFor={`${idPrefix}-country`}>{t("country")}</Label>
+        <NativeSelect
           id={`${idPrefix}-country`}
           name="country"
           required
           value={country}
           onChange={(event) => setCountry(event.target.value)}
+          className="w-full"
         >
-          <option value="">Choose a country</option>
-          {COUNTRIES.map((c) => (
-            <option key={c.code} value={c.code}>
+          <NativeSelectOption value="">{t("chooseCountry")}</NativeSelectOption>
+          {countries.map((c) => (
+            <NativeSelectOption key={c.code} value={c.code}>
               {c.name}
-            </option>
+            </NativeSelectOption>
           ))}
-        </select>
-      </p>
-      <p>
-        <label htmlFor={`${idPrefix}-city`}>City</label>{" "}
-        <select
+        </NativeSelect>
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor={`${idPrefix}-city`}>{t("city")}</Label>
+        <NativeSelect
           // A new country starts the city choice afresh.
           key={country}
           id={`${idPrefix}-city`}
@@ -97,15 +147,16 @@ export function LocationSelect({
           required
           disabled={cities.length === 0}
           defaultValue={country === defaultCountry ? defaultCity : ""}
+          className="w-full"
         >
-          <option value="">Choose a city</option>
+          <NativeSelectOption value="">{t("chooseCity")}</NativeSelectOption>
           {cities.map((city) => (
-            <option key={city} value={city}>
+            <NativeSelectOption key={city} value={city}>
               {city}
-            </option>
+            </NativeSelectOption>
           ))}
-        </select>
-      </p>
-    </>
+        </NativeSelect>
+      </div>
+    </div>
   );
 }

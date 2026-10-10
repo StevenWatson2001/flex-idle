@@ -13,9 +13,25 @@ Things that break if a future chat doesn't know them. Keep it short.
 - **Public sign-up is off** in the dashboard (dev and live), along with
   email confirmation. If sign-up were on, anyone with the publishable key
   could create a player. The security test fails if it's on.
-- **First admin:** in the dashboard, Authentication → Users → Add user
-  with `<username>@flex-idle.invalid`, then in `profiles` set
-  `role = 'admin'` and fill in the name, country and city.
+- **First admin:** run `pnpm admin:create`. It targets the project in
+  `.env.local` (dev); for live, `pnpm admin:create -- --env-file <file>`
+  with a gitignored `.env.*.local` file holding live's URL and secret key.
+  The app itself never makes admins.
+- **UI text** lives only in `messages/*.json`. `km.json` must have every
+  key `en.json` has, which typecheck enforces. Account errors are keys
+  translated by the action that shows them, not English strings.
+- **Colours** come only from the theme tokens in `app/globals.css`. The
+  theme comes from the profile and the root layout renders the `.dark`
+  class on the server, so nothing follows the browser's setting.
+- **next-intl without its plugin:** the plugin loads `@swc/core`, whose
+  native binding fails a permissions check on Steven's machine, so
+  `next.config.ts` sets the one alias it would (`next-intl/config`).
+  Don't add the plugin back.
+- **shadcn CLI:** `shadcn add` installs an unrelated npm package called
+  `cn` and imports `cn` from it, and asks to overwrite our themed
+  components. After adding one: point its import at `@/lib/utils`, remove
+  the `cn` package, copy any `@custom-variant` it needs into
+  `globals.css`, and never overwrite existing components.
 - **Secret key:** `SUPABASE_SECRET_KEY` (server only) in `.env.local` and
   Vercel. CI reads it from the GitHub secret `DEV_SUPABASE_SECRET_KEY`.
 
