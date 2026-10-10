@@ -17,6 +17,13 @@ Tailwind + shadcn/ui · Vitest · Playwright · GitHub Actions · Vercel · pnpm
 - `docs/vision.md`: what the game should be in the end.
 - `docs/decisions.md`: decisions and lessons, newest first.
 - `lib/server/db-write.ts`: the only code that writes game data.
+- `lib/server/accounts.ts`: the only code that creates or edits accounts.
+- `lib/server/session.ts`: the signed-in account, and the
+  `requireAccount()` / `requireAdmin()` checks every page and action uses.
+- `lib/server/supabase-admin.ts`: the secret-key client. Server only.
+- `proxy.ts`: refreshes the session cookie on each request. It makes no
+  access decisions.
+- `e2e/`: Playwright flows. `test/`: helpers for tests that use dev.
 - `lib/server/ai.ts`: the only code that calls an LLM.
 - `app/`: pages and server actions.
 
@@ -51,8 +58,9 @@ Same code everywhere; only environment variables differ.
   placeholder email per account and email confirmation off.
 - **AI:** Vercel AI SDK behind `lib/server/ai.ts`. Model set in config;
   per-player usage caps.
-- **Testing:** unit tests for game logic; database tests against dev
-  (unique test data, cleaned up afterwards); a few Playwright flows.
-- **Pipeline:** each PR runs lint, typecheck and tests and gets a preview
-  on dev. Merging to `main` makes Supabase's GitHub integration apply new
+- **Testing:** per slice, one Playwright flow and one security test
+  against dev (unique `t_` accounts, deleted afterwards); unit tests only
+  for game maths. See AGENTS.md.
+- **Pipeline:** each PR (except docs-only) runs lint, typecheck and tests,
+  with Playwright as a parallel job, and gets a preview on dev. Merging to `main` makes Supabase's GitHub integration apply new
   migrations to live; Vercel deploys production.

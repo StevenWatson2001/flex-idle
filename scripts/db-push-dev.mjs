@@ -19,11 +19,15 @@ if (!url) {
 }
 const projectRef = new URL(url).hostname.split(".")[0];
 
+// pnpm passes the "--" from `pnpm db:push -- --dry-run` through; the CLI
+// would treat everything after it as positional, so drop it.
+const args = process.argv.slice(2).filter((arg) => arg !== "--");
+
 const cli = createRequire(import.meta.url).resolve("supabase/dist/supabase.js");
 console.log(`Pushing migrations to dev (${projectRef})...`);
 const result = spawnSync(
   process.execPath,
-  [cli, "db", "push", "--project-ref", projectRef, ...process.argv.slice(2)],
+  [cli, "db", "push", "--project-ref", projectRef, ...args],
   { stdio: "inherit" },
 );
 process.exit(result.status ?? 1);

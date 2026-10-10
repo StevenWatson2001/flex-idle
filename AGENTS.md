@@ -22,8 +22,8 @@ suit a game better. Steven decides; you implement approved plans.
    - Small fixes go in this PR; bigger ones become issues.
    - Add to `docs/decisions.md` only what would break future work if
      unknown.
-   - Confirm the roadmap with Steven. Next needs at least two slices with
-     issues; draft any missing ones for his approval.
+   - Confirm the roadmap with Steven. Next holds two unfinished slices
+     with issues, no more; draft a missing one for his approval.
 
 ## Always
 - Work against dev only.
@@ -35,6 +35,16 @@ suit a game better. Steven decides; you implement approved plans.
   (new tables aren't exposed by default). Update `docs/data-model.md` in
   the same PR.
 - Route LLM calls through `lib/server/ai.ts`.
+
+## Tests
+- Each slice gets at most two tests: one Playwright flow for its main
+  journey, and one database test for the security rules the UI never
+  attempts (RLS, grants, refusals). Add unit tests only for game maths
+  and stats.
+- Use the fewest checks that catch every bug: if one check already fails
+  for a bug, drop any other that only catches the same bug.
+- Use soft assertions with a message on every check, so one run shows
+  everything that broke and where.
 
 ## Ask first
 - Adding a dependency.
@@ -54,6 +64,7 @@ suit a game better. Steven decides; you implement approved plans.
 - `pnpm dev`: run the app locally against dev (needs `.env.local`; see
   `.env.example`).
 - `pnpm test`: run the tests (database tests use dev).
+- `pnpm test:e2e`: build the app and run the Playwright flows against dev.
 - `pnpm typecheck` · `pnpm lint` · `pnpm build`
 - `pnpm supabase migration new <issue>-<name>`: create a migration.
 - `pnpm db:push`: apply new migrations to dev (Steven runs it; add
