@@ -41,6 +41,18 @@ suit a game better. Steven decides; you implement approved plans.
   `NEXT_PUBLIC_` variables.
 - Work around an action that settings block. Stop and tell Steven.
 
+## Commands
+- `pnpm install`: install dependencies.
+- `pnpm dev`: run the app locally against dev (needs `.env.local`; see
+  `.env.example`).
+- `pnpm test`: run the tests (database tests use dev).
+- `pnpm typecheck` · `pnpm lint` · `pnpm build`
+- `pnpm supabase migration new <issue>-<name>`: create a migration.
+- `pnpm db:push`: apply new migrations to dev (Steven runs it; add
+  `-- --dry-run` to preview). It targets the project in `.env.local`, so
+  it never touches live. Needs `pnpm supabase login` once per machine.
+  Live gets migrations on merge.
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 ## This is NOT the Next.js you know

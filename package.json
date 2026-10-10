@@ -12,7 +12,8 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "db:push": "node scripts/db-push-dev.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.117.3",
