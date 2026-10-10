@@ -26,7 +26,7 @@
   },
   "game": {
     "region": "Game",
-    "placeholder": "The click area will appear here.",
+    "clickToEarn": "Click to earn Gold",
     "currencies": "Currencies",
     "gold": "Gold",
     "favour": "Favour",
@@ -42,6 +42,12 @@
     "title": "Profile",
     "location": "Location",
     "role": "Role",
+    "stats": "Stats",
+    "stat": "Stat",
+    "thisRun": "This run",
+    "allTime": "All time",
+    "clicks": "Clicks",
+    "goldEarned": "Gold earned",
     "none": "—",
     "roles": {
       "player": "Player",
@@ -60,6 +66,14 @@
     },
     "save": "Save preferences",
     "saved": "Preferences saved.",
+    "progress": "Progress",
+    "resetIntro": "Start again from nothing: your Gold and stats go back to zero.",
+    "resetButton": "Reset progress",
+    "resetConfirmTitle": "Reset your progress?",
+    "resetConfirmBody": "Your Gold and all your stats go back to zero. It can't be undone.",
+    "cancel": "Cancel",
+    "confirmReset": "Reset",
+    "progressReset": "Progress reset.",
     "account": "Account",
     "signOutIntro": "Sign out of Flex Idle on this browser.",
     "signOut": "Sign out"
@@ -105,7 +119,9 @@
     "saveFailed": "Couldn't save. Please try again.",
     "notAllowed": "Only admins can do that.",
     "signedOut": "You've been signed out. Sign in again.",
-    "deleteFailed": "Couldn't delete the player."
+    "deleteFailed": "Couldn't delete the player.",
+    "badClicks": "Those clicks couldn't be counted.",
+    "playersOnly": "Only players can do that."
   },
   "notFound": {
     "title": "Lost in the wilds",

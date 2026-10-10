@@ -17,6 +17,11 @@ Tailwind + shadcn/ui · Vitest · Playwright · GitHub Actions · Vercel · pnpm
 - `docs/vision.md`: what the game should be in the end.
 - `docs/decisions.md`: decisions and lessons, newest first.
 - `lib/server/db-write.ts`: the only code that writes game data.
+- `lib/server/progress.ts`: reads the signed-in player's resources and
+  stats as that player, so RLS applies.
+- `lib/game/`: game numbers and maths that don't touch the database,
+  such as the click-rate cap (`clicks.ts`) and big-number display
+  (`format.ts`).
 - `lib/server/accounts.ts`: the only code that creates or edits accounts.
 - `lib/server/session.ts`: the signed-in account, and the
   `requireAccount()` / `requireAdmin()` checks every page and action uses.

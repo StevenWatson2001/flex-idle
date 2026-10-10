@@ -52,3 +52,52 @@ deploy can reach its database.
 - **Write:** no one through the Data API. No write grants or policies, and
   `service_role` is limited to `select`. The row is inserted by the
   migration, so every environment gets it without seed data.
+
+### `resources`
+Added in #7. How much of each resource a player has: one row per player
+per resource type.
+
+| Column      | Type               | Notes                                          |
+| ----------- | ------------------ | ---------------------------------------------- |
+| `player_id` | `uuid`             | The profile's ID. Deleting the profile deletes the rows |
+| `resource`  | `text`             | `'gold'`. Add new types (Favour) to the check   |
+| `amount`    | `double precision` | 0 or more, never infinite                      |
+
+Primary key `(player_id, resource)`.
+
+### `player_stats`
+Added in #7. One row per player: stats for the current run (reset by
+Ascension, once it exists) and all-time.
+
+| Column                       | Type               | Notes                               |
+| ---------------------------- | ------------------ | ----------------------------------- |
+| `player_id`                  | `uuid`             | Primary key; the profile's ID. Deleting the profile deletes the row |
+| `run_clicks`                 | `bigint`           | Clicks accepted this run            |
+| `run_gold_earned`            | `double precision` | Gold earned this run                |
+| `total_clicks`               | `bigint`           | Clicks accepted, all-time           |
+| `total_gold_earned`          | `double precision` | Gold earned, all-time               |
+| `click_allowance_used_until` | `timestamptz`      | The click-rate cap's bookmark (see `save_clicks`). Null means a full allowance |
+
+For both tables:
+- **Created by:** the trigger `create_progress_after_profile_insert` on
+  `profiles` (`private.create_progress_for_new_profile()`), so every
+  profile, admins included, has its rows. The #7 migration backfilled
+  existing profiles.
+- **Read:** a signed-in player reads only their own rows (RLS
+  `(select auth.uid()) = player_id`). `anon` can't read them. The server
+  reads them with the secret key too.
+- **Write:** no one through the Data API: no role has insert, update or
+  delete. Every change goes through the two functions below, which run as
+  their owner (`security definer`) and only `service_role` can execute.
+  The server calls them only from `lib/server/db-write.ts`.
+
+## Functions
+
+- **`save_clicks(p_player, p_clicks, p_gold_per_click, p_clicks_per_second, p_max_seconds)`**
+  (#7): adds a batch of clicks and returns the new Gold. It accepts at most
+  `p_clicks_per_second` clicks for the time since
+  `click_allowance_used_until`, banking at most `p_max_seconds`, and moves
+  the bookmark on by the time the accepted clicks used. It locks the stats
+  row, so two tabs can't race. The numbers come from `lib/game/clicks.ts`.
+- **`reset_progress(p_player)`** (#7): sets the player's resources and all
+  four stats to zero. It leaves the click allowance alone.
