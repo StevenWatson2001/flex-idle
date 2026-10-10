@@ -7,15 +7,23 @@ suit a game better. Steven decides; you implement approved plans.
 
 ## Workflow
 1. Steven names the issue to work on, or asks you to create one. Read it
-   with `gh issue view`, using `docs/roadmap.md` for context. Ask questions
-   until the behaviour is clear, then plan in plan mode and wait for
-   approval.
+   with `gh issue view`, using `docs/roadmap.md` for context and
+   `docs/vision.md` for where the game is heading; features should move
+   toward it. Ask questions until the behaviour is clear, then plan in plan
+   mode and wait for approval.
 2. On a branch `slice/<name>`: write the tests first, run them to show
    they fail, and commit them.
 3. Implement until they pass. Then run the full suite, typecheck, lint and
    build.
 4. Push and open a PR: what changed, how it was tested, what Steven should
    check, and "Closes #<issue>".
+5. Before calling the PR ready to merge, make sure a new chat could carry
+   on from `docs/`, the issues and the code alone:
+   - Small fixes go in this PR; bigger ones become issues.
+   - Add to `docs/decisions.md` only what would break future work if
+     unknown.
+   - Confirm the roadmap with Steven. Next needs at least two slices with
+     issues; draft any missing ones for his approval.
 
 ## Always
 - Work against dev only.

@@ -9,13 +9,17 @@ Notes) and move it to Next with its number. When a slice is merged, remove
 it from here; closed issues are the history.
 
 ## Now
-
-## Next
 - #3 Accounts
 
+## Next
+- #7 Resource creation
+- #8 UI layout
+
 ## Later
-- Upgrade content
-- Buying upgrades
-- Offline progress
-- LLM-generated upgrades
-- Admin stats
+- Upgrades and units
+- Reskin: imagery and visuals
+- Ascension
+- AI-generated upgrades
+- Milestones
+- Refinement
+- Admin dashboard
