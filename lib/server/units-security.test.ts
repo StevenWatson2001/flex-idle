@@ -33,7 +33,8 @@ async function buyStarterKit(playerId: string): Promise<void> {
   if (!clicks.ok || !hands.ok || !chicken.ok) throw new Error("couldn't buy the starter kit");
 }
 
-it("keeps units and upgrades safe", async () => {
+// It makes around 40 calls to dev, so it gets longer than the default 5 s.
+it("keeps units and upgrades safe", { timeout: 20_000 }, async () => {
   const me = await newPlayer();
   const other = await newPlayer();
   await buyStarterKit(me.id);
@@ -115,7 +116,7 @@ it("keeps units and upgrades safe", async () => {
     p_count: 1,
     p_cost: 0.01,
   });
-  expect.soft(stale.error?.code, "a purchase with a stale version went through").toBe("40001");
+  expect.soft(stale.error?.code, "a purchase with a stale version went through").toBe("FI002");
 
   // Every unit and upgrade on dev parses and refers only to real things.
   await expect.soft(loadContent(me.id), "the content on dev doesn't pass its checks").resolves.toBeDefined();

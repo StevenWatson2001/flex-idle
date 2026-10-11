@@ -1,58 +1,23 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import { Coins } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { GOLD_PER_CLICK, SAVE_INTERVAL_MS } from "@/lib/game/clicks";
-import { formatAmount } from "@/lib/game/format";
-import { saveClicks } from "./actions";
+import { formatAmount, formatRate } from "@/lib/game/format";
+import { useGame, useLiveGold } from "../game-provider";
 import { Currency } from "./currency";
 
-// The Gold tile and the main area the player clicks. Clicks are counted
-// here and sent in batches every couple of seconds, when the tab is hidden,
-// and on leaving the page (so before signing out, which is on Settings).
-// Server Actions run one at a time, so batches arrive in order. The tile
-// shows the server's Gold plus the clicks not yet sent.
-export function ClickArea({ gold: initialGold, children }: { gold: number; children: React.ReactNode }) {
+// The Gold tile, the main area the player clicks, and what clicks and units
+// earn. The game provider counts the clicks and saves them; leaving the
+// page sends any still waiting (so before signing out, which is on
+// Settings).
+export function ClickArea({ children }: { children: React.ReactNode }) {
   const t = useTranslations("game");
   const locale = useLocale();
-  const [gold, setGold] = useState(initialGold);
-  const [unsent, setUnsent] = useState(0);
-  const unsentRef = useRef(0);
+  const { snapshot, click, flush } = useGame();
+  const gold = useLiveGold();
 
-  useEffect(() => {
-    function send() {
-      const clicks = unsentRef.current;
-      if (clicks === 0) return;
-      unsentRef.current = 0;
-      // Both updates in one callback, so the tile never counts a batch twice.
-      void saveClicks(clicks).then(
-        (saved) => {
-          if (saved !== null) setGold(saved);
-          setUnsent((count) => count - clicks);
-        },
-        () => setUnsent((count) => count - clicks),
-      );
-    }
-    function sendIfHidden() {
-      if (document.visibilityState === "hidden") send();
-    }
-
-    const interval = setInterval(send, SAVE_INTERVAL_MS);
-    document.addEventListener("visibilitychange", sendIfHidden);
-    return () => {
-      clearInterval(interval);
-      document.removeEventListener("visibilitychange", sendIfHidden);
-      send();
-    };
-  }, []);
-
-  function click() {
-    unsentRef.current += 1;
-    setUnsent((count) => count + 1);
-  }
-
-  const shown = gold + unsent * GOLD_PER_CLICK;
+  useEffect(() => flush, [flush]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -60,12 +25,12 @@ export function ClickArea({ gold: initialGold, children }: { gold: number; child
         <Currency
           icon={<Coins />}
           name={t("gold")}
-          amount={formatAmount(shown, locale)}
-          title={new Intl.NumberFormat(locale).format(Math.floor(shown))}
+          amount={formatAmount(gold, locale)}
+          title={new Intl.NumberFormat(locale).format(Math.floor(gold))}
         />
         {children}
       </section>
-      <section aria-label={t("region")} className="panel-frame flex flex-1 rounded-lg bg-card/70 p-2">
+      <section aria-label={t("region")} className="panel-frame flex flex-1 flex-col rounded-lg bg-card/70 p-2">
         <button
           type="button"
           onClick={click}
@@ -79,6 +44,17 @@ export function ClickArea({ gold: initialGold, children }: { gold: number; child
           </span>
           <span className="font-heading text-lg font-semibold tracking-wide text-heading">{t("clickToEarn")}</span>
         </button>
+        <p
+          role="status"
+          aria-label={t("earnings")}
+          className="border-t border-gold/40 px-4 pt-3 pb-2 text-center font-heading text-sm font-semibold tracking-wide text-muted-foreground tabular-nums"
+        >
+          {t("perClick", { amount: formatRate(snapshot.goldPerClick, locale) })}
+          <span aria-hidden className="mx-2 text-gold">
+            ·
+          </span>
+          {t("perSecond", { amount: formatRate(snapshot.incomePerSecond, locale) })}
+        </p>
       </section>
     </div>
   );

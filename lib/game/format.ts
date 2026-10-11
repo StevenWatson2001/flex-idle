@@ -22,3 +22,10 @@ export function formatAmount(amount: number, locale: string): string {
   }).format(whole / 1000 ** tier);
   return `${scaled} ${suffix}`;
 }
+
+// Rates such as Gold per second, which start small: one decimal place
+// under 1,000 (0.2), then as formatAmount.
+export function formatRate(amount: number, locale: string): string {
+  if (amount >= 1000) return formatAmount(amount, locale);
+  return new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(Math.floor(amount * 10) / 10);
+}

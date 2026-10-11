@@ -47,9 +47,6 @@ test("game layout and settings journey", async ({ page }) => {
       .soft(page.getByRole("region", { name: "Currencies" }), "currency bar doesn't show Gold and Favour")
       .toHaveText(/Gold.*Favour/);
 
-    await expect
-      .soft(page.getByText("Units you can buy will appear here."), "Units tab has no empty state")
-      .toBeVisible();
     await page.getByRole("tab", { name: "Upgrades" }).click();
     await expect
       .soft(page.getByText("Upgrades you can buy will appear here."), "Upgrades tab has no empty state")

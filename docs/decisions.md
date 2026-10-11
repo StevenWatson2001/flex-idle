@@ -5,11 +5,28 @@ Things that break if a future chat doesn't know them. Keep it short.
 - **Game numbers** are doubles (`double precision` in Postgres, `number`
   in TypeScript), good to about 1.8e308. Show them with `formatAmount`
   from `lib/game/format.ts`, never raw.
-- **Clicks** reach the database only through `save_clicks`, which caps
+- **Clicks** reach the database only through `sync_progress`, which caps
   them; the cap's numbers live in `lib/game/clicks.ts` and are passed in.
   Game tables have no write grants at all: new game writes get a
   `security definer` function that only `service_role` can execute,
   called from `lib/server/db-write.ts`.
+- **Game maths happens in TypeScript** (`lib/game/economy.ts`) on the
+  server and is passed into the database functions. Any write that depends
+  on what a player owns passes `progress_version`, and the function refuses
+  a stale one (`FI002`). A new write like that must bump the version and go
+  through `withProgress` in `db-write.ts`, or two tabs can buy at the
+  wrong price.
+- **Never raise `40001` or `40P01` on purpose** in a database function.
+  The API retries transactions that fail with them, so one that always
+  fails hangs until the caller gives up. Use our own codes (`FI001`
+  not enough Gold, `FI002` stale progress).
+- **Content formulas** are parsed by `lib/game/formula.ts` and never run as
+  SQL or JavaScript, because AI-written content will land there. Add
+  abilities by adding stats, functions or effect targets in code, never
+  `eval` or dynamic SQL.
+- **Income** is credited only up to 90 s (`MAX_INCOME_SECONDS`) per save,
+  and the game provider saves every 2 s on every signed-in page, so units
+  earn only while the game is open. Raising the cap gives offline income.
 - **Usernames:** they live only in `profiles.username`, lowercase. The
   Auth email is a placeholder (`new_<random>@accounts.flex-idle.invalid`)
   that never changes, so sign-in looks the username up on the server.

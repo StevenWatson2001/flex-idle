@@ -1,13 +1,17 @@
 import Link from "next/link";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
+import { getGameSnapshot } from "@/lib/server/progress";
 import { homePath, requireAccount } from "@/lib/server/session";
+import { GameProvider } from "./game-provider";
 import { NavLinks, type NavItem } from "./nav-links";
 
 // Every signed-in page: the header with the brand and the section tabs,
-// then the page. Players get the game; admins get the admin area instead.
+// then the page. Players get the game, which runs on every page so units
+// keep earning; admins get the admin area instead.
 export default async function SignedInLayout({ children }: { children: React.ReactNode }) {
   const account = await requireAccount();
   const t = await getTranslations();
+  const snapshot = account.role === "player" ? await getGameSnapshot(account.id, await getLocale()) : null;
 
   const items: NavItem[] = [
     account.role === "admin"
@@ -30,7 +34,7 @@ export default async function SignedInLayout({ children }: { children: React.Rea
           <NavLinks label={t("nav.label")} items={items} />
         </div>
       </header>
-      {children}
+      {snapshot ? <GameProvider initial={snapshot}>{children}</GameProvider> : children}
     </div>
   );
 }
