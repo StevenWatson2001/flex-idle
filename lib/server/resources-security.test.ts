@@ -50,12 +50,15 @@ it("keeps Gold and stats safe", async () => {
     "update stats": await client.from("player_stats").update({ total_clicks: 1e9 }).eq("player_id", me.id),
     "insert stats": await client.from("player_stats").insert({ player_id: me.id }),
     "delete stats": await client.from("player_stats").delete().eq("player_id", me.id),
-    "call save_clicks": await client.rpc("save_clicks", {
+    "call sync_progress": await client.rpc("sync_progress", {
       p_player: me.id,
+      p_version: 0,
       p_clicks: 1000,
       p_gold_per_click: 1e9,
+      p_income_per_second: 0,
       p_clicks_per_second: 1000,
-      p_max_seconds: 1000,
+      p_max_click_seconds: 1000,
+      p_max_income_seconds: 1000,
     }),
     "call reset_progress": await client.rpc("reset_progress", { p_player: me.id }),
   };
