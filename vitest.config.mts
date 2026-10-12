@@ -8,6 +8,9 @@ export default defineConfig({
   test: {
     environment: "node",
     setupFiles: ["./vitest.setup.ts"],
+    // Database tests make dozens of calls to dev and run side by side; from
+    // CI they can pass 5 s, so a slow network isn't reported as a failure.
+    testTimeout: 20_000,
     // Playwright runs e2e/ itself.
     exclude: [...configDefaults.exclude, "e2e/**"],
   },

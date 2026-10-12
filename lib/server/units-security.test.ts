@@ -33,8 +33,7 @@ async function buyStarterKit(playerId: string): Promise<void> {
   if (!clicks.ok || !hands.ok || !chicken.ok) throw new Error("couldn't buy the starter kit");
 }
 
-// It makes around 40 calls to dev, so it gets longer than the default 5 s.
-it("keeps units and upgrades safe", { timeout: 20_000 }, async () => {
+it("keeps units and upgrades safe", async () => {
   const me = await newPlayer();
   const other = await newPlayer();
   await buyStarterKit(me.id);
