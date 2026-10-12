@@ -15,13 +15,18 @@ Tailwind + shadcn/ui · Vitest · Playwright · GitHub Actions · Vercel · pnpm
 - `docs/data-model.md`: the planned tables, what each holds, and who can
   read or write it.
 - `docs/vision.md`: what the game should be in the end.
+- `docs/content.md`: how units and upgrades work, their formula language,
+  and how to add more.
 - `docs/decisions.md`: decisions and lessons, newest first.
 - `lib/server/db-write.ts`: the only code that writes game data.
-- `lib/server/progress.ts`: reads the signed-in player's resources and
-  stats as that player, so RLS applies.
-- `lib/game/`: game numbers and maths that don't touch the database,
-  such as the click-rate cap (`clicks.ts`) and big-number display
-  (`format.ts`).
+- `lib/server/progress.ts`: reads a player's progress (as that player on
+  pages, so RLS applies) and builds the Play page's snapshot.
+- `lib/server/content.ts`: loads and checks a player's units and upgrades.
+  Only the server reads content.
+- `lib/game/`: game numbers and maths that don't touch the database: the
+  click-rate cap and save timings (`clicks.ts`), big-number display
+  (`format.ts`), the formula language content is written in
+  (`formula.ts`), and costs, income, unlocks and effects (`economy.ts`).
 - `lib/server/accounts.ts`: the only code that creates or edits accounts.
 - `lib/server/session.ts`: the signed-in account, and the
   `requireAccount()` / `requireAdmin()` checks every page and action uses.
@@ -32,7 +37,9 @@ Tailwind + shadcn/ui · Vitest · Playwright · GitHub Actions · Vercel · pnpm
 - `e2e/`: Playwright flows. `test/`: helpers for tests that use dev.
 - `lib/server/ai.ts`: the only code that calls an LLM.
 - `app/`: pages and server actions. `app/(signed-in)/` holds every page
-  behind sign-in, under the shared header and nav.
+  behind sign-in, under the shared header and nav, and the game provider
+  (`game-provider.tsx`, with `game-actions.ts`) that keeps a player's game
+  saving on every one of those pages.
 - `app/globals.css`: the theme. Every colour is a token, set for Light on
   `:root` and for Dark on `.dark`, plus the CSS-only background texture.
 - `components/ui/`: shadcn components, restyled through the theme tokens.
@@ -47,8 +54,9 @@ Tailwind + shadcn/ui · Vitest · Playwright · GitHub Actions · Vercel · pnpm
   enforces this) and sends actions to server code.
 - **Server:** checks rules, computes in TypeScript, writes through
   `db-write.ts`.
-- **Database:** the `public` schema holds profiles, progress and history;
-  the `content` schema holds upgrades, versioned.
+- **Database:** the `public` schema holds profiles, progress, history and
+  content (`units`, `upgrades`). Only the server reads content. Content
+  isn't versioned yet: later migrations update rows in place.
 
 ## Invariants
 - The browser never writes game data and stores nothing but the login
@@ -57,8 +65,9 @@ Tailwind + shadcn/ui · Vitest · Playwright · GitHub Actions · Vercel · pnpm
 - The schema changes only through new migration files. Drops and renames need
   Steven's approval.
 - History is append-only.
-- Generated upgrades are validated and saved to `content` before any player
-  sees them.
+- Content's logic is formulas evaluated only by `lib/game/formula.ts`,
+  never run as code. Generated units and upgrades are validated and saved
+  to the content tables before any player sees them.
 - Passwords are handled only by Supabase Auth.
 - Live data never leaves live; dev data comes from the seed script.
 
